@@ -1,0 +1,9 @@
+{"target":"slack","format":"blocks","source":"slack-web-api","text":"【一次報告】決済エラーの発生について",
+ "blocks":[
+  {"type":"header","text":{"type":"plain_text","text":"【一次報告】決済エラーの発生について"}},
+  {"type":"section","text":{"type":"mrkdwn","text":"<!channel> 10:42 頃から、一部のお客様でクレジットカード決済が失敗しています。現在原因を調査中です。\n\n*影響範囲*: カード決済のみ（コンビニ払い・銀行振込は正常）\n*暫定対応*: 決済代行のエンドポイントを旧系統に切り戻し中（11:10 完了見込み）"}},
+  {"type":"section","fields":[{"type":"mrkdwn","text":"*発生時刻*\n10:42"},{"type":"mrkdwn","text":"*担当*\n<@U0AQUILA>（技術） <@U0CS>（お客様対応）"}]},
+  {"type":"context","elements":[{"type":"mrkdwn","text":"次の更新は 11:30 まで、またはステータス変化時。お客様からの問い合わせは <#C0CS|cs-inbound> へ"}]},
+  {"type":"actions","elements":[{"type":"button","text":{"type":"plain_text","text":"対応状況のドキュメント"},"url":"https://docs.example.com/incidents/2026-10-06"}]}
+ ],
+ "context":{"channel_id":"C0ANNOUNCE","channel_name":"announce","as":"user","names":{"U0AQUILA":"aquila","U0CS":"nakamura.r","C0CS":"cs-inbound"}}}

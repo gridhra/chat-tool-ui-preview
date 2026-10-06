@@ -1,0 +1,12 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.gridhra/chat-tool-ui-preview",
+  "title": "chat-tool-ui-preview",
+  "description": "Shows a chat post to the user in their browser before an agent sends it: wording, mentions, destination, thread placement, and warnings. Never sends, never contacts the chat service, no daemon.",
+  "version": "0.0.0",
+  "websiteUrl": "https://github.com/gridhra/chat-tool-ui-preview",
+  "repository": {
+    "url": "https://github.com/gridhra/chat-tool-ui-preview",
+    "source": "github"
+  }
+}

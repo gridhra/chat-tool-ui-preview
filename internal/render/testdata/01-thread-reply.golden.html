@@ -1,0 +1,2 @@
+<p class="p"><span class="mention" title="U0MIKA">@mika.t</span> 報告ありがとうございます。再現できました。原因は <code class="code">useCart</code> の初期化順で、ログイン直後にカートが空で描画される問題です。</p><p class="p">修正の PR を出しました: <span class="link" title="https://github.com/example/shop/pull/412">https://github.com/example/shop/pull/412</span>
+明日の午前中にはステージングで確認できる見込みです。急ぎであれば一旦 feature flag <code class="code">cart_v2</code> を切ってください。</p>

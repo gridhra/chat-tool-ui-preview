@@ -1,0 +1,17 @@
+{"target":"slack","format":"blocks","source":"manual","text":"代替文",
+ "blocks":[
+  {"type":"header","text":{"type":"plain_text","text":"見出し :rocket:","emoji":true}},
+  {"type":"section","text":{"type":"mrkdwn","text":"section の本文 <@U0AAA>"},"accessory":{"type":"button","text":{"type":"plain_text","text":"付属ボタン"},"url":"https://example.com"}},
+  {"type":"section","fields":[{"type":"mrkdwn","text":"*項目A*\n値A"},{"type":"mrkdwn","text":"*項目B*\n値B"},{"type":"plain_text","text":"plain field"}]},
+  {"type":"divider"},
+  {"type":"context","elements":[{"type":"mrkdwn","text":"_補足_ · <!date^1700000000^{date_short}|2023-11-14>"},{"type":"image","image_url":"https://example.com/i.png","alt_text":"icon"}]},
+  {"type":"image","image_url":"https://example.com/graph.png","alt_text":"推移グラフ","title":{"type":"plain_text","text":"推移"}},
+  {"type":"actions","elements":[{"type":"button","text":{"type":"plain_text","text":"承認"},"style":"primary"},{"type":"button","text":{"type":"plain_text","text":"差し戻し"},"style":"danger"},{"type":"static_select","placeholder":{"type":"plain_text","text":"担当を選ぶ"}},{"type":"datepicker"}]},
+  {"type":"rich_text","elements":[
+   {"type":"rich_text_section","elements":[{"type":"text","text":"rich_text: 太字","style":{"bold":true}},{"type":"text","text":" と "},{"type":"text","text":"code","style":{"code":true}},{"type":"text","text":" と "},{"type":"user","user_id":"U0ZZZ"},{"type":"text","text":" "},{"type":"emoji","name":"tada"},{"type":"text","text":" "},{"type":"link","url":"https://example.com","text":"link"}]},
+   {"type":"rich_text_list","style":"bullet","elements":[{"type":"rich_text_section","elements":[{"type":"text","text":"項目1"}]},{"type":"rich_text_section","elements":[{"type":"text","text":"項目2"}]}]},
+   {"type":"rich_text_quote","elements":[{"type":"text","text":"引用"}]},
+   {"type":"rich_text_preformatted","elements":[{"type":"text","text":"pre\nformatted"}]}]},
+  {"type":"video"}
+ ],
+ "context":{"channel_id":"C0GEN","names":{"U0AAA":"aquila"}}}

@@ -1,0 +1,3 @@
+{"target":"slack","format":"mrkdwn","source":"manual",
+ "text":"*太字* _斜体_ ~打消~ `code` と、語中のa*b*cは強調しない。\nリンク: <https://example.com|ラベル付き> と https://example.com/auto 末尾の句点。\nメンション: <@U0AAA> <@U0BBB> <#C0GEN|general> <!subteam^S0DEV>\n絵文字: :tada: :white_check_mark: :no_such_emoji_x:\n日付: <!date^1700000000^{date_short} at {time}|2023-11-14 22:13>\n\n> 引用1\n> 引用2 *強調も効く*\n```\nfunc main() {\n\tfmt.Println(\"hi\")\n}\n```",
+ "context":{"channel_id":"C0GEN","channel_name":"general","names":{"U0AAA":"aquila","S0DEV":"dev-team"}}}

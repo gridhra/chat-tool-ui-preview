@@ -1,0 +1,3 @@
+{"target":"slack","format":"markdown","source":"claude-slack-mcp",
+ "text":"<@U0MIKA> 報告ありがとうございます。再現できました。原因は `useCart` の初期化順で、ログイン直後にカートが空で描画される問題です。\n\n修正の PR を出しました: https://github.com/example/shop/pull/412\n明日の午前中にはステージングで確認できる見込みです。急ぎであれば一旦 feature flag `cart_v2` を切ってください。",
+ "context":{"channel_id":"C0SHOPDEV","channel_name":"shop-dev","thread_ts":"1759740000.000200","as":"user","names":{"U0MIKA":"mika.t"}}}

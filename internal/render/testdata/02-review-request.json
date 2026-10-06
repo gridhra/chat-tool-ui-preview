@@ -1,0 +1,3 @@
+{"target":"slack","format":"markdown","source":"claude-slack-mcp",
+ "text":"<!here> 今週リリース予定の PR のレビューをお願いします。木曜 15:00 までに見てもらえると助かります。\n\n- 決済のリトライ処理 https://github.com/example/shop/pull/408 （<@U0KEN> お願いできますか）\n- 商品検索の N+1 修正 https://github.com/example/shop/pull/410\n- 注文メールの文面変更 https://github.com/example/shop/pull/411 （デザインは Figma 反映済み）\n\n**間に合わないものは来週に回します。** 気になる点はスレッドでどうぞ。",
+ "context":{"channel_id":"C0SHOPDEV","channel_name":"shop-dev","as":"user","names":{"U0KEN":"ken.s"}}}

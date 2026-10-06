@@ -1,0 +1,3 @@
+{"target":"slack","format":"mrkdwn","source":"slack-web-api",
+ "text":"お疲れさまです。来週の *1on1* ですが、火曜 14:00 が会議と重なってしまいました。\n水曜 11:00 か 木曜 16:00 のどちらかに動かせますか？\n難しければ来週は飛ばしても大丈夫です :pray:",
+ "context":{"channel_id":"U0SATO","as":"user","names":{"U0SATO":"sato.y"}}}

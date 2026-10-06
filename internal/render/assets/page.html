@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
+<title>{{.Title}}</title>
+<style>{{.CSS}}</style>
+</head>
+<body>
+<div class="stack{{if .Gallery}} gallery{{end}}">
+{{if .Gallery}}<h1>書式要素の見本</h1>
+<div class="note">各入力形式の要素がどう描かれるかの一覧。送信先サービスの画面ではありません。</div>
+{{range .Items}}<h2>{{.Name}}</h2><div class="body">{{.Body}}</div>{{end}}
+{{else}}
+<div class="note">送信前の確認。送信先サービスの画面ではなく、このツール独自の表示です。入力形式: {{.FormatLabel}}</div>
+<div class="dest">
+  <span class="where">{{.Channel}}</span>{{if .ChannelSub}}<span class="sub">{{.ChannelSub}}</span>{{end}}
+  {{if .ThreadTS}}<span class="tag">スレッドへの返信 · 親 {{.ThreadTS}}</span>{{if .ReplyBroadcast}}<span class="tag">チャンネルにも表示</span>{{end}}{{else}}<span class="tag">新規の投稿</span>{{end}}
+</div>
+<article class="post">
+  <div class="from">{{if .IsBot}}ボットとして送信 · <b>{{.Sender}}</b>{{else}}あなたとして送信{{if .SenderNamed}} · <b>{{.Sender}}</b>{{end}}{{end}}</div>
+  <div class="body">{{.Body}}</div>
+</article>
+{{if .Warnings}}<section class="warnings"><h2>確認が必要な点（{{len .Warnings}}件）</h2><ul>{{range .Warnings}}<li><code>{{.Code}}</code> {{.Message}}</li>{{end}}</ul></section>
+{{else}}<div class="ok">自動検査で引っかかった点はありません。</div>{{end}}
+{{if .Raw}}<details class="raw"><summary>元の入力</summary><pre>{{.Raw}}</pre></details>{{end}}
+{{end}}
+</div>
+</body>
+</html>

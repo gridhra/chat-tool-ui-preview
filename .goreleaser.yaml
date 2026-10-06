@@ -1,0 +1,34 @@
+# GoReleaser configuration. Run by .github/workflows/release.yml on a v* tag;
+# see RELEASING.md. scripts/install.sh and scripts/install.ps1
+# depend on the archive and checksum file names below: change them together.
+version: 2
+project_name: chat-preview
+builds:
+  - id: chat-preview
+    main: ./cmd/chat-preview
+    binary: chat-preview
+    env: [CGO_ENABLED=0]
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/gridhra/chat-tool-ui-preview/internal/cli.Version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+archives:
+  - formats: [tar.gz]
+    # chat-preview_0.1.0_darwin_arm64.tar.gz, binary at the archive root.
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files: [LICENSE, README.md]
+checksum:
+  name_template: checksums.txt
+changelog:
+  use: github-native
+release:
+  # Immutable releases are on: assets cannot change once a release is
+  # published. GoReleaser uploads everything to a draft; the workflow attests
+  # the files and only then publishes.
+  draft: true
+  replace_existing_draft: true
