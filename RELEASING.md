@@ -29,7 +29,7 @@ port-keeper-mcpと同じ方式。タグを打つだけで、GitHub Actionsがビ
 
 - 公開前（下書き）で失敗したら、原因を直して同じタグで `workflow_dispatch`（入力 `tag`）から再実行する。下書きは置き換えられる
 - 公開後は資産を変えられない。次の版を切る
-- ジョブ `registry` だけが失敗したら（レジストリ側の一時障害など）、同じタグで `workflow_dispatch` から再実行する。ジョブ `release` は公開済みを検出して何もせず、`registry` は未登録なら登録し、登録済みなら何もしない
+- ジョブ `registry` だけが失敗したら、原因を直して `main` に push し、同じタグで `workflow_dispatch`（入力 `tag`、ブランチは `main`）から再実行する。ジョブ `release` は公開済みを検出して何もせず、`registry` は `main` の `server.json` と `scripts/registry.sh` で描画し、未登録なら登録し、登録済みなら何もしない。由来: `v0.1.1` で `server.json` の `description` がレジストリの上限（100文字）を超えて422で落ちた。`scripts/registry.sh check` が上限を検査するようにした
 
 ## 3. 配布物の名前を変えるとき
 

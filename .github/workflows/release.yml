@@ -142,9 +142,12 @@ jobs:
       MCP_PUBLISHER_VERSION: v1.8.1
       MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
     steps:
+      # Checks out the commit that triggered the run: the tag on a tag push,
+      # the chosen branch on workflow_dispatch. A re-run after fixing
+      # server.json or scripts/registry.sh therefore registers from main;
+      # the binaries it points at are the tag's published assets either way.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: refs/tags/${{ env.TAG }}
           persist-credentials: false
 
       - name: Skip if the registry already has this version

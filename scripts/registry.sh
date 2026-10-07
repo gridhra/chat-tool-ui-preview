@@ -43,13 +43,17 @@ render() {
   jq --arg v "$version" --argjson pkgs "$pkgs" '.version = $v | .packages = $pkgs' "$template"
 }
 
-# check FILE: name, version shape, six mcpb packages with hashes
+# check FILE: name, description and title within the registry's 100-char
+# limit (a longer description was rejected with 422 on 2026-10-07), version
+# shape, six mcpb packages with hashes
 check() {
   file=$1
   [ -f "$file" ] || die "not found: $file"
   command -v jq >/dev/null || die "jq is required"
   jq -e --arg n "$SERVER_NAME" '
     .name == $n
+    and (.description | length > 0 and length <= 100)
+    and (.title | length > 0 and length <= 100)
     and (.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))
     and (.packages | length == 6)
     and all(.packages[]; .registryType == "mcpb"
