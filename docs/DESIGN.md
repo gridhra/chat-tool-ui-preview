@@ -208,6 +208,18 @@ internal/render/testdata/                       # 見本兼ゴールデンテス
 docs/{DESIGN,ROADMAP}.md  README.md  SECURITY.md  openspec/
 ```
 
+### 3.9 配布（アーカイブ、MCP Bundle、公式MCPレジストリ）
+
+配布の方式はport-keeper-mcpから移した。タグを打つとGitHub Actionsが、OSとCPUごとの6つのアーカイブ（`tar.gz`／`zip`。中身は単体バイナリ）、`checksums.txt`、ビルド来歴の署名を付けてGitHub Releaseに公開し、`scripts/install.sh`／`install.ps1`がそこから入れる。これがClaude Code・VS Code・Cursor・シェル利用者の入口である。
+
+それに加えて、各リリースに**MCP Bundle**（`.mcpb`。`manifest.json`とバイナリを1つのzipにした配布形式。旧称DXT）を同じ6通り付け、**公式MCPレジストリ**（registry.modelcontextprotocol.io）に`io.github.gridhra/chat-tool-ui-preview`として登録する。レジストリが受け付ける形式（npm、PyPI、NuGet、cargo、OCI、mcpb）のうち、Node不要・コンテナ不要という方針と両立するのはmcpbだけである。
+
+- `.mcpb`を取り込めるクライアントは2026-10-06時点でClaude Desktop（macOS／Windows）だけ。Claude Desktopの利用者には、PATHに置く手間なく`preview_message`ツールが入る。それ以外の利用者の入口はアーカイブのまま
+- port-keeper-mcpはmcpbを見送った（同リポジトリ`docs/DESIGN.md` §9.2）。理由は「Claude Desktopにはクライアントの作業ディレクトリが無い」「バンドル内のバイナリはPATHに入らず、台帳を共有する別のバイナリと版がずれる」の2つで、どちらもport-keeperの性質（作業ディレクトリからプロジェクトを解決し、ホーム配下の台帳を持つ）に由来する。本ツールはブラウザを開いて一時ファイルを置くだけなので当たらない
+- 残る障害は、macOSのClaude Desktopがバンドルを展開するとき実行権限を落とす不具合（`modelcontextprotocol/mcpb` issue #294、未修理）。darwin用の`manifest.json`では`command`を`/bin/sh`にし、`chmod u+x`してから`exec`する回避策を入れた（`scripts/mcpb.sh`）。issueが閉じたら直接起動に戻す
+- OCI（コンテナ）は採らない。本ツールは利用者のブラウザを開き、利用者のマシンに一時ファイルを置くのが仕事で、コンテナ越しでは機能しない。Glama（登録・評価サイト）が動作確認のために作るコンテナは`initialize`と`tools/list`を取るだけで、配布ではない
+- バンドルの作成は`.goreleaser.yaml`のビルド後フック（`scripts/mcpb.sh pack`。zipは同じ入力から同じバイトになる）、レジストリ登録はリリース公開後のジョブ（`scripts/registry.sh render`で`server.json`に6つの`mcpb`パッケージを入れ、`mcp-publisher`のGitHub OIDC認証で送る）。手順と失敗時の扱いは`RELEASING.md` §4
+
 ---
 
 ## 4. テスト方針
@@ -242,3 +254,4 @@ docs/{DESIGN,ROADMAP}.md  README.md  SECURITY.md  openspec/
 | D3 | 実装言語 | (a) Go単体バイナリ＋自前描画 / (b) TypeScript（React＋Storybook） | **(a)に決定（2026-10-06）**。一度(b)を選んだが、利用側にNodeを要求する欠点が大きいとして同日(a)へ戻した。見本管理は`gallery`で代替（§3.1） |
 | D4 | v1の入力範囲 | (a) Slackのみ3形式 / (b) 最初からDiscordも | **(a)で進める（2026-10-06、担当側の判断）**。`target`の口だけ残す |
 | D5 | 名前 | (a) `chat-tool-ui-preview`のまま / (b) 短い別名（`msg-preview`等） | **(a)で進める（2026-10-06、担当側の判断）**。「slack」を含めないことだけ守る |
+| D6 | 公式MCPレジストリへの登録 | (a) 登録しない（port-keeperと同じ） / (b) OCI（コンテナ）で登録 / (c) mcpb（MCP Bundle）で登録 | **(c)に決定（2026-10-06）**。当初(a)としたが、port-keeperがmcpbを見送った理由は作業ディレクトリと台帳に由来し本ツールには当たらないとユーザーが指摘。(b)はコンテナ内でブラウザを開けないので不可。macOSの実行権限不具合は`/bin/sh`経由の起動で回避（§3.9） |

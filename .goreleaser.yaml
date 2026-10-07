@@ -1,6 +1,7 @@
 # GoReleaser configuration. Run by .github/workflows/release.yml on a v* tag;
-# see RELEASING.md. scripts/install.sh and scripts/install.ps1
-# depend on the archive and checksum file names below: change them together.
+# see RELEASING.md. scripts/install.sh, scripts/install.ps1, scripts/mcpb.sh
+# and scripts/registry.sh depend on the archive, bundle and checksum file
+# names below: change them together.
 version: 2
 project_name: chat-preview
 builds:
@@ -14,6 +15,11 @@ builds:
     ldflags:
       - -s -w -X github.com/gridhra/chat-tool-ui-preview/internal/cli.Version={{ .Version }}
     mod_timestamp: "{{ .CommitTimestamp }}"
+    hooks:
+      # One MCP Bundle (.mcpb, for Claude Desktop and the MCP registry) per
+      # binary: chat-preview_<version>_<os>_<arch>.mcpb in dist/mcpb.
+      post:
+        - sh scripts/mcpb.sh pack "{{ .Path }}" "{{ .Os }}" "{{ .Arch }}" "{{ .Version }}" "{{ .CommitTimestamp }}" dist/mcpb
 archives:
   - formats: [tar.gz]
     # chat-preview_0.1.0_darwin_arm64.tar.gz, binary at the archive root.
@@ -24,6 +30,9 @@ archives:
     files: [LICENSE, README.md]
 checksum:
   name_template: checksums.txt
+  # The bundles are listed in the same checksums.txt as the archives.
+  extra_files:
+    - glob: ./dist/mcpb/*.mcpb
 changelog:
   use: github-native
 release:
@@ -32,3 +41,5 @@ release:
   # the files and only then publishes.
   draft: true
   replace_existing_draft: true
+  extra_files:
+    - glob: ./dist/mcpb/*.mcpb

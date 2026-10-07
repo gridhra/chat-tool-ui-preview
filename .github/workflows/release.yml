@@ -1,23 +1,24 @@
 name: release
 
-# Tag push -> six archives + checksums.txt + build provenance -> published
-# GitHub Release. No human step and no stored credential: the only token is the
-# per-run GITHUB_TOKEN. See RELEASING.md for the procedure and for what to do
-# when a run fails.
+# Tag push -> six archives + six .mcpb bundles + checksums.txt + build
+# provenance -> published GitHub Release -> entry in the official MCP registry.
+# No human step and no stored credential: the only tokens are the per-run
+# GITHUB_TOKEN and a GitHub OIDC token for the registry. See RELEASING.md for
+# the procedure and for what to do when a run fails.
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to (re)build, e.g. v0.1.0"
+        description: "Existing tag to (re)build or (re)register, e.g. v0.1.0"
         required: true
 
 concurrency:
   group: release-${{ github.event.inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
-# Nothing by default; the one job below asks for what it needs.
+# Nothing by default; each job below asks for what it needs.
 permissions: {}
 
 jobs:
@@ -28,6 +29,9 @@ jobs:
       contents: write # create and publish the GitHub Release
       id-token: write # build provenance attestation
       attestations: write
+    outputs:
+      tag: ${{ env.TAG }}
+      version: ${{ env.VERSION }}
     steps:
       # A tag name can carry shell metacharacters, so it never goes into a run:
       # line as an expression. It arrives through env and is validated first.
@@ -41,7 +45,8 @@ jobs:
           echo "VERSION=${TAG_IN#v}" >> "$GITHUB_ENV"
 
       # Published assets are immutable. A re-run on a tag that is already out
-      # must not try to rebuild them; it stops here, successfully.
+      # must not try to rebuild them; it stops here, successfully, and the
+      # registry job below still runs (it is idempotent).
       - name: Stop if the release is already published
         id: existing
         env:
@@ -50,7 +55,7 @@ jobs:
           set -euo pipefail
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft' 2>/dev/null | grep -qx false; then
             echo "published=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::release $TAG is already published; nothing to do"
+            echo "::notice::release $TAG is already published; nothing to build"
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
@@ -75,8 +80,9 @@ jobs:
         run: go test ./...
 
       # The GoReleaser version is pinned; Dependabot updates the action, this
-      # line is updated by hand (RELEASING.md).
-      - name: Build archives into a draft release
+      # line is updated by hand (RELEASING.md). Its post-build hook runs
+      # scripts/mcpb.sh, which packs each binary into a .mcpb bundle.
+      - name: Build archives and bundles into a draft release
         if: steps.existing.outputs.published != 'true'
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
@@ -86,15 +92,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check the built version
+      - name: Check the built version and the bundles
         if: steps.existing.outputs.published != 'true'
         run: |
           set -euo pipefail
-          ls -la dist/*.tar.gz dist/*.zip dist/checksums.txt
-          test "$(ls dist/*.tar.gz dist/*.zip | wc -l)" -eq 6
+          ls -la dist/*.tar.gz dist/*.zip dist/mcpb/*.mcpb dist/checksums.txt
+          test "$(find dist -maxdepth 1 \( -name '*.tar.gz' -o -name '*.zip' \) | wc -l)" -eq 6
+          test "$(find dist/mcpb -maxdepth 1 -name '*.mcpb' | wc -l)" -eq 6
+          test "$(grep -c '\.mcpb$' dist/checksums.txt)" -eq 6
           out="$(dist/chat-preview_linux_amd64_v1/chat-preview --version)"
           echo "$out"
           case "$out" in "chat-preview $VERSION "*) ;; *) echo "::error::binary reports '$out', tag is $VERSION"; exit 1 ;; esac
+          for f in dist/mcpb/*.mcpb; do sh scripts/mcpb.sh check "$f"; done
+          unzip -p "dist/mcpb/chat-preview_${VERSION}_darwin_arm64.mcpb" manifest.json | jq -e --arg v "$VERSION" '.version == $v' >/dev/null
 
       # `gh attestation verify <file> -R <repo>` proves a download came from this workflow.
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -103,6 +113,7 @@ jobs:
           subject-path: |
             dist/*.tar.gz
             dist/*.zip
+            dist/mcpb/*.mcpb
             dist/checksums.txt
 
       - name: Publish the release
@@ -110,3 +121,69 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release edit "$TAG" --draft=false --repo "$GITHUB_REPOSITORY"
+
+  # Registers the version with the official MCP registry
+  # (registry.modelcontextprotocol.io) as six mcpb packages, one per OS/CPU,
+  # pointing at the .mcpb assets above. The registry fetches each URL to check
+  # it exists, so this must run after the release is public. Authentication
+  # is GitHub OIDC: the namespace io.github.gridhra belongs to this repo's
+  # owner, nothing is stored. Skips when the version is already registered.
+  registry:
+    name: publish to MCP registry
+    needs: release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write # OIDC token for mcp-publisher login github-oidc
+    env:
+      TAG: ${{ needs.release.outputs.tag }}
+      VERSION: ${{ needs.release.outputs.version }}
+      # Pinned; update the version and the sha256 together (RELEASING.md).
+      MCP_PUBLISHER_VERSION: v1.8.1
+      MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          persist-credentials: false
+
+      - name: Skip if the registry already has this version
+        id: have
+        run: |
+          set -euo pipefail
+          if sh scripts/registry.sh exists "$VERSION"; then
+            echo "registered=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$VERSION is already in the MCP registry; nothing to do"
+          else
+            echo "registered=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Render server.json from the published checksums
+        if: steps.have.outputs.registered != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern checksums.txt --dir out --clobber
+          sh scripts/registry.sh render "$VERSION" out/checksums.txt > out/server.json
+          sh scripts/registry.sh check out/server.json
+          cat out/server.json
+
+      - name: Install mcp-publisher
+        if: steps.have.outputs.registered != 'true'
+        run: |
+          set -euo pipefail
+          f=mcp-publisher_linux_amd64.tar.gz
+          curl -fsSL -o "$f" "https://github.com/modelcontextprotocol/registry/releases/download/$MCP_PUBLISHER_VERSION/$f"
+          echo "$MCP_PUBLISHER_SHA256  $f" | sha256sum -c -
+          tar xzf "$f" mcp-publisher
+          ./mcp-publisher --help | head -1
+
+      - name: Publish to the registry
+        if: steps.have.outputs.registered != 'true'
+        run: |
+          set -euo pipefail
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish out/server.json
+          sh scripts/registry.sh exists "$VERSION"

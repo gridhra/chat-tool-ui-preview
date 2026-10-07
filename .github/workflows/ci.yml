@@ -37,6 +37,8 @@ jobs:
           GOOS=linux GOARCH=arm64 go build ./...
       - name: install script tests
         run: sh scripts/install_test.sh
+      - name: mcpb bundle and registry rendering tests
+        run: sh scripts/mcpb_test.sh
 
   release-config:
     runs-on: ubuntu-latest

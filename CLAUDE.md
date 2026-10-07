@@ -21,6 +21,8 @@ go run ./cmd/chat-preview mcp       # MCPサーバー（stdio）
 - **クライアント固有の作法はアダプタに閉じ込める**（`internal/cli/hook_claude.go`）。核（`internal/{model,parse,render}`）はどのクライアントから使われるかを知らない
 - テストでは実際にブラウザを開かない（`cli.App.Open`／`mcpserver.Deps.Open`を差し替える）。実ポートにbindしない。MCPはin-memory transportで試験する
 - MCPツールの省略可能な入力には`omitempty`を付ける（SDKが入力スキーマを検証する）。出力の配列は失敗時でもnilにしない（`null`になりスキーマ違反になる）
+- **配布物の名前（`chat-preview_<版>_<os>_<arch>` のアーカイブと `.mcpb`、`checksums.txt`）を変えるときは**、`.goreleaser.yaml`、`scripts/install.sh`、`scripts/install.ps1`、`scripts/mcpb.sh`、`scripts/registry.sh`、READMEを同時に直す（`RELEASING.md` §3）
+- リリースと登録の手順は`RELEASING.md`。`.mcpb`（MCP Bundle）と公式MCPレジストリの判断は`docs/DESIGN.md` §3.9
 
 ## 進め方
 

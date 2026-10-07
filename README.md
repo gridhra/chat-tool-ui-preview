@@ -43,6 +43,14 @@ go install github.com/gridhra/chat-tool-ui-preview/cmd/chat-preview@latest
 
 コンテナイメージと`npx`ランチャーは用意しません。ブラウザを開く必要があるので、ホストで動かすのが前提です。
 
+### Claude Desktopに入れる（MCP Bundle）
+
+各リリースには、OSとCPUごとの`chat-preview_<版>_<os>_<arch>.mcpb`も付いています。MCP Bundle（`.mcpb`）は、`manifest.json`とバイナリを1つのzipにした配布形式で、Claude Desktop（macOS／Windows）がそのまま取り込めます。[Releases](https://github.com/gridhra/chat-tool-ui-preview/releases)から自分のOSとCPUに合う`.mcpb`を落とし、ダブルクリック（またはClaude Desktopの設定 → エクステンション → 詳細設定 → エクステンションをインストール）で入ります。中身は上のアーカイブと同じバイナリで、`checksums.txt`と`gh attestation verify`で同じように確かめられます。
+
+macOSのClaude Desktopには、取り込んだバイナリの実行権限を落とす不具合（modelcontextprotocol/mcpb issue #294、2026-10-06時点で未修理）があるため、macOS用のバンドルは`/bin/sh`経由で起動して実行権限を付け直してから`chat-preview mcp`を実行します。Windows用は`.exe`を直接起動します。
+
+同じバンドルを[公式MCPレジストリ](https://registry.modelcontextprotocol.io)に`io.github.gridhra/chat-tool-ui-preview`として登録しています。レジストリから入れられるクライアントでは、その名前で探せます。
+
 ## 使い方
 
 ```sh
